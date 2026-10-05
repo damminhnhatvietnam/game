@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bảo Tàng Minigame Trái Cây</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .font-fredoka {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            15% { transform: translate(-8px, 6px) rotate(-1.5deg); }
+            30% { transform: translate(8px, -6px) rotate(1.5deg); }
+            45% { transform: translate(-6px, -4px) rotate(-1deg); }
+            60% { transform: translate(6px, 4px) rotate(1deg); }
+            75% { transform: translate(-3px, 2px) rotate(-0.5deg); }
+        }
+        .animate-shake {
+            animation: screenShake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Fire Mode Glowing Border Animation */
+        @keyframes fireGlow {
+            0% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), inset 0 0 15px rgba(249, 115, 22, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.9), inset 0 0 25px rgba(239, 68, 68, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), inset 0 0 15px rgba(249, 115, 22, 0.5); }
+        }
+        .fire-border {
+            animation: fireGlow 1.2s infinite ease-in-out;
+            border-color: #f97316 !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white min-h-screen flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+
+    <!-- Main Outer Container -->
+    <div id="mainContainer" class="relative w-full max-w-xl max-h-[98dvh] bg-slate-900 rounded-3xl shadow-2xl border-2 sm:border-4 border-slate-800 overflow-hidden flex flex-col my-auto">
+        
+        <!-- Top Museum Navigation Bar -->
+        <div class="glass-panel z-20 px-4 py-2.5 flex items-center justify-between border-b border-slate-800 flex-shrink-0">
+            <div class="flex items-center gap-2 cursor-pointer" id="museumHomeBtn">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center shadow-lg text-lg">
+                    🏛️
+                </div>
+                <div>
+                    <h1 class="text-sm font-extrabold text-amber-300 font-fredoka leading-none">BẢO TÀNG TRÁI CÂY</h1>
+                    <span id="currentModeLabel" class="text-[10px] text-slate-400 font-semibold">Sảnh Trung Tâm</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="globalSoundBtn" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition">
+                    <i id="globalSoundIcon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+                <button id="backToHubBtn" class="hidden px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 hover:bg-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-house text-[10px]"></i> Sảnh
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 1: MUSEUM HUB / GALLERY SELECTOR -->
+        <div id="museumHubView" class="flex-1 flex flex-col p-4 sm:p-6 overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900">
+            <div class="text-center my-3">
+                <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[11px] font-bold uppercase tracking-widest">
+                    ✨ Triển Lãm Trò Chơi Giải Trí
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-black text-white font-fredoka mt-2 mb-1 drop-shadow">
+                    CHỌN MINIGAME
+                </h2>
+                <p class="text-slate-400 text-xs max-w-sm mx-auto">
+                    Khám phá và thử thách kỹ năng của bạn với các chế độ chơi độc đáo!
+                </p>
+            </div>
+
+            <!-- Game Cards Grid -->
+            <div class="grid grid-cols-1 gap-4 my-auto">
+                
+                <!-- GAME CARD 1: HỨNG TRÁI CÂY -->
+                <div id="selectCatcherGame" class="group relative bg-gradient-to-r from-sky-900/60 to-emerald-900/60 hover:from-sky-800/80 hover:to-emerald-800/80 rounded-2xl p-4 border border-sky-500/30 hover:border-emerald-400/60 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-sky-500/10 flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-3xl flex-shrink-0 group-hover:scale-110 transition duration-300">
+                        🧺
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-lg font-bold text-sky-200 font-fredoka group-hover:text-white transition">Hứng Trái Cây</h3>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Cổ Điển</span>
+                        </div>
+                        <p class="text-slate-300 text-xs line-clamp-2 leading-snug">
+                            Di chuyển rổ hứng trái cây rơi từ trên cao, kích hoạt Nam Châm, Làm Chậm và tránh Bom Độc!
+                        </p>
+                        <div class="mt-2 text-[11px] font-semibold text-amber-300 flex items-center gap-1">
+                            <i class="fa-solid fa-trophy text-amber-400 text-xs"></i> Kỷ lục: <span id="catcherHighScoreHub">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GAME CARD 2: CHÉM HOA QUẢ (FRUIT NINJA) -->
+                <div id="selectSlicerGame" class="group relative bg-gradient-to-r from-orange-900/60 to-red-900/60 hover:from-orange-800/80 hover:to-red-800/80 rounded-2xl p-4 border border-orange-500/30 hover:border-red-400/60 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-orange-500/10 flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-3xl flex-shrink-0 group-hover:scale-110 transition duration-300">
+                        ⚔️
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="text-lg font-bold text-orange-200 font-fredoka group-hover:text-white transition">Chém Hoa Quả</h3>
+                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30">Mới!</span>
+                        </div>
+                        <p class="text-slate-300 text-xs line-clamp-2 leading-snug">
+                            Vung đao chém trái cây tung hứng! Càng lên điểm cao càng bùng nổ, mốc 1000đ hóa Lửa Rực Rỡ & 2000đ WIN!
+                        </p>
+                        <div class="mt-2 text-[11px] font-semibold text-amber-300 flex items-center gap-1">
+                            <i class="fa-solid fa-trophy text-amber-400 text-xs"></i> Kỷ lục: <span id="slicerHighScoreHub">0</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Stats / Footer info -->
+            <div class="mt-auto pt-4 text-center border-t border-slate-800 text-[11px] text-slate-500 flex justify-between items-center">
+                <span>🏛️ Bộ Sưu Tập Minigame</span>
+                <span>Phiên bản 2.0 • Web Canvas</span>
+            </div>
+        </div>
+
+        <!-- VIEW 2: GAME 1 CONTAINER (HỨNG TRÁI CÂY) -->
+        <div id="catcherGameView" class="hidden flex-1 flex-col relative overflow-hidden">
+            <!-- Catcher Header HUD -->
+            <div class="bg-slate-950/80 px-4 py-2 flex items-center justify-between border-b border-slate-800 text-xs z-10">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-bold">ĐIỂM</div>
+                        <div id="catcherScoreDisplay" class="text-xl font-black text-amber-400 font-fredoka leading-none">0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-bold">KỶ LỤC</div>
+                        <div id="catcherHighScoreDisplay" class="text-xs font-bold text-amber-300">0</div>
+                    </div>
+                    <div id="catcherComboBadge" class="hidden bg-gradient-to-r from-orange-500 to-amber-500 px-2 py-0.5 rounded-lg text-[10px] font-bold text-white">
+                        <span id="catcherComboText">x2 Combo</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <div id="catcherLivesContainer" class="flex gap-1 text-sm">
+                        <i class="fa-solid fa-heart text-red-500"></i>
+                        <i class="fa-solid fa-heart text-red-500"></i>
+                        <i class="fa-solid fa-heart text-red-500"></i>
+                    </div>
+                    <button id="catcherPauseBtn" class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-pause text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Powerup Bar -->
+            <div id="catcherPowerupStatus" class="hidden bg-slate-800 border-b border-cyan-500/30 px-3 py-1 flex items-center justify-between text-[11px] z-10">
+                <div class="flex items-center gap-1.5">
+                    <span id="catcherPowerupIcon">🧲</span>
+                    <span id="catcherPowerupName" class="font-bold text-cyan-300">Nam Châm</span>
+                </div>
+                <div class="w-24 bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                    <div id="catcherPowerupTimerBar" class="bg-cyan-400 h-full w-full"></div>
+                </div>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="relative flex-1 bg-gradient-to-b from-sky-400 via-sky-200 to-emerald-200 overflow-hidden">
+                <canvas id="catcherCanvas" class="w-full h-full block cursor-pointer"></canvas>
+                <div id="catcherRedFlash" class="pointer-events-none absolute inset-0 bg-red-600/40 opacity-0 transition-opacity duration-200 z-15"></div>
+
+                <!-- Start Overlay Catcher -->
+                <div id="catcherStartOverlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-5 text-center z-20">
+                    <div class="text-4xl mb-2 animate-bounce">🧺</div>
+                    <h2 class="text-2xl font-black text-amber-300 font-fredoka mb-1">HỨNG TRÁI CÂY</h2>
+                    <p class="text-slate-300 text-xs max-w-xs mb-4">
+                        Di chuyển rổ hứng trái cây ngọt ngào, tạo Combo và né tránh Bom Độc!
+                    </p>
+
+                    <div class="w-full max-w-xs mb-4">
+                        <div class="text-xs font-bold text-slate-300 mb-1.5">CẤP ĐỘ KHÓ:</div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button type="button" data-diff="easy" class="catcher-diff-btn text-xs font-bold py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300">Dễ</button>
+                            <button type="button" data-diff="medium" class="catcher-diff-btn text-xs font-bold py-1.5 rounded-xl border-2 border-amber-400 bg-amber-500/20 text-amber-300">Vừa</button>
+                            <button type="button" data-diff="hard" class="catcher-diff-btn text-xs font-bold py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300">Khó</button>
+                            <button type="button" data-diff="extreme" class="catcher-diff-btn text-xs font-bold py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300">Ác Mộng</button>
+                        </div>
+                    </div>
+
+                    <button id="startCatcherBtn" class="w-full max-w-xs bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold text-sm py-3 rounded-xl shadow-lg btn-bounce">
+                        BẮT ĐẦU CHƠI
+                    </button>
+                </div>
+
+                <!-- Pause Overlay Catcher -->
+                <div id="catcherPauseOverlay" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-30">
+                    <h3 class="text-xl font-bold text-white mb-4 font-fredoka">TẠM DỪNG</h3>
+                    <button id="resumeCatcherBtn" class="w-40 bg-emerald-500 text-white font-bold py-2.5 rounded-xl mb-2">TIẾP TỤC</button>
+                    <button id="restartCatcherPauseBtn" class="w-40 bg-slate-800 text-slate-200 font-bold py-2.5 rounded-xl border border-slate-700">CHƠI LẠI</button>
+                </div>
+
+                <!-- Game Over Catcher -->
+                <div id="catcherGameOverOverlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+                    <div class="text-4xl mb-2">💥</div>
+                    <h3 class="text-2xl font-black text-red-400 font-fredoka mb-1">TRÒ CHƠI KẾT THÚC</h3>
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl w-full max-w-xs my-3 text-center">
+                        <div class="text-xs text-slate-400">Điểm của bạn</div>
+                        <div id="catcherFinalScore" class="text-3xl font-black text-amber-400 font-fredoka">0</div>
+                    </div>
+                    <button id="restartCatcherBtn" class="w-full max-w-xs bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg btn-bounce">
+                        CHƠI LẠI NGAY
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Controls -->
+            <div class="p-2 bg-slate-950 border-t border-slate-800 flex justify-between gap-3 sm:hidden">
+                <button id="catcherLeftBtn" class="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-bold border border-slate-700 active:bg-blue-600"><i class="fa-solid fa-arrow-left"></i></button>
+                <button id="catcherRightBtn" class="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-bold border border-slate-700 active:bg-blue-600"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: GAME 2 CONTAINER (CHÉM HOA QUẢ - FRUIT NINJA) -->
+        <div id="slicerGameView" class="hidden flex-1 flex-col relative overflow-hidden">
+            <!-- Slicer Header HUD -->
+            <div id="slicerHud" class="bg-slate-950/90 px-4 py-2.5 flex items-center justify-between border-b border-slate-800 text-xs z-10 transition-colors duration-500">
+                <div class="flex items-center gap-3">
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Điểm Số</div>
+                        <div id="slicerScoreDisplay" class="text-2xl font-black text-amber-400 font-fredoka leading-none">0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Level</div>
+                        <div id="slicerLevelDisplay" class="text-xs font-black text-emerald-400">1 (Bình Thường)</div>
+                    </div>
+                </div>
+
+                <!-- Lives & Controls -->
+                <div class="flex items-center gap-3">
+                    <div id="slicerLivesContainer" class="flex gap-1 text-sm">
+                        <i class="fa-solid fa-heart text-red-500"></i>
+                        <i class="fa-solid fa-heart text-red-500"></i>
+                        <i class="fa-solid fa-heart text-red-500"></i>
+                    </div>
+                    <button id="slicerPauseBtn" class="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-pause text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Level / Mode Banner -->
+            <div id="slicerModeBanner" class="hidden bg-slate-900 border-b border-orange-500/30 px-3 py-1 text-center text-xs font-bold text-amber-300 z-10 transition-all">
+                <span id="slicerModeBannerText">Level 1: Bắt Đầu</span>
+            </div>
+
+            <!-- Canvas Area for Slicer -->
+            <div id="slicerCanvasContainer" class="relative flex-1 bg-slate-950 overflow-hidden select-none">
+                <canvas id="slicerCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+                <!-- Fire Mode Glow Overlay (Activated at 1000 points) -->
+                <div id="slicerFireOverlay" class="pointer-events-none absolute inset-0 bg-red-600/10 opacity-0 transition-opacity duration-500 z-15 mix-blend-screen"></div>
+
+                <!-- Start Overlay Slicer -->
+                <div id="slicerStartOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-5 text-center z-20">
+                    <div class="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center mb-3 border-2 border-orange-500/50 text-4xl animate-bounce">
+                        ⚔️
+                    </div>
+                    <h2 class="text-3xl font-black text-amber-300 font-fredoka mb-1 tracking-wide">CHÉM HOA QUẢ</h2>
+                    <p class="text-slate-300 text-xs max-w-xs mb-4 leading-relaxed">
+                        Di chuyển chuột hoặc vuốt tay để chém tất cả trái cây tung hứng! Tách đôi quả, né tránh bom độc và vung đao thật nhanh!
+                    </p>
+
+                    <!-- Milestones Info Box -->
+                    <div class="bg-slate-900/90 p-3 rounded-2xl border border-slate-800 text-[11px] max-w-xs w-full mb-5 text-left space-y-1.5">
+                        <div class="font-bold text-amber-400 mb-1 flex items-center gap-1">
+                            <i class="fa-solid fa-flag-checkered"></i> CÁC CỘT MỐC THỬ THÁCH:
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300">
+                            <span>🎯 100 Điểm:</span> <span class="text-emerald-400 font-bold">Tăng Level 2 (Nhanh)</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300">
+                            <span>🎯 200 Điểm:</span> <span class="text-amber-400 font-bold">Level 3 (Thêm Bom)</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300">
+                            <span>🎯 500 Điểm:</span> <span class="text-orange-400 font-bold">Level 4 (Siêu Cực Khó)</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300">
+                            <span>🔥 1000 Điểm:</span> <span class="text-red-400 font-bold">LỬA RỰC ĐỎ CỰC BÙNG NỔ</span>
+                        </div>
+                        <div class="flex items-center justify-between text-slate-300">
+                            <span>🏆 2000 Điểm:</span> <span class="text-yellow-300 font-bold">VICTORY (BẠN ĐÃ WIN!)</span>
+                        </div>
+                    </div>
+
+                    <button id="startSlicerBtn" class="w-full max-w-xs bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 text-white font-extrabold text-base py-3.5 rounded-2xl shadow-xl border border-orange-400/40 btn-bounce flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> BẮT ĐẦU CHÉM
+                    </button>
+                </div>
+
+                <!-- Pause Overlay Slicer -->
+                <div id="slicerPauseOverlay" class="hidden absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-30">
+                    <div class="text-3xl text-amber-400 mb-2">⚔️</div>
+                    <h3 class="text-2xl font-bold text-white mb-4 font-fredoka">TẠM DỪNG GAME</h3>
+                    <button id="resumeSlicerBtn" class="w-48 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold py-3 rounded-2xl shadow-lg btn-bounce mb-2">TIẾP TỤC</button>
+                    <button id="restartSlicerPauseBtn" class="w-48 bg-slate-800 text-slate-200 font-bold py-3 rounded-2xl border border-slate-700 btn-bounce">CHƠI LẠI</button>
+                </div>
+
+                <!-- Game Over Slicer -->
+                <div id="slicerGameOverOverlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-30">
+                    <div class="text-5xl mb-2 animate-bounce">💣</div>
+                    <h3 class="text-3xl font-black text-red-500 font-fredoka mb-1">TRÒ CHƠI KẾT THÚC</h3>
+                    <p class="text-slate-400 text-xs mb-3">Bạn đã bỏ lỡ nhiều trái cây hoặc chém phải Bom!</p>
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl w-full max-w-xs mb-4 text-center">
+                        <div class="text-xs text-slate-400">Tổng điểm đạt được</div>
+                        <div id="slicerFinalScore" class="text-4xl font-black text-amber-400 font-fredoka mb-1">0</div>
+                        <div id="slicerNewHighscoreBadge" class="hidden text-xs font-bold text-emerald-400 bg-emerald-500/20 py-1 px-3 rounded-full border border-emerald-500/30">🎉 KỶ LỤC MỚI!</div>
+                    </div>
+                    <button id="restartSlicerBtn" class="w-full max-w-xs bg-gradient-to-r from-orange-500 to-red-600 text-white font-extrabold text-base py-3.5 rounded-2xl shadow-xl border border-orange-400/40 btn-bounce">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> CHƠI LẠI NGAY
+                    </button>
+                </div>
+
+                <!-- WIN OVERLAY SLICER (At 2000 Points) -->
+                <div id="slicerWinOverlay" class="hidden absolute inset-0 bg-slate-950/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center z-40 border-4 border-yellow-400">
+                    <div class="text-6xl mb-3 animate-bounce">🏆</div>
+                    <h2 class="text-4xl font-black text-yellow-300 font-fredoka mb-2 drop-shadow-[0_5px_5px_rgba(234,179,8,0.5)]">
+                        BẠN ĐÃ WIN!
+                    </h2>
+                    <p class="text-amber-200 text-sm max-w-xs mb-6 font-bold">
+                        BÁ CHỦ PHONG THÁI NINJA TRÁI CÂY! Bạn đã chinh phục mốc 2000 ĐIỂM xuất sắc!
+                    </p>
+                    <div class="bg-gradient-to-b from-amber-500/20 to-yellow-600/20 border-2 border-yellow-400/60 p-4 rounded-3xl w-full max-w-xs mb-6 text-center shadow-2xl">
+                        <div class="text-xs text-amber-300 font-bold uppercase tracking-wider mb-1">Thành Tích Tối Thượng</div>
+                        <div id="slicerWinScore" class="text-5xl font-black text-yellow-300 font-fredoka">2000</div>
+                    </div>
+                    <button id="restartSlicerWinBtn" class="w-full max-w-xs bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-slate-950 font-black text-lg py-4 rounded-2xl shadow-2xl btn-bounce tracking-wider">
+                        CHƠI LẠI ĐỂ TỎA SÁNG
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ==========================================================================
+           1. SYNTHESIZED SOUND ENGINE (Web Audio API)
+           ========================================================================== */
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playCatch() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.exponentialRampToValueAtTime(660, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+
+            playSlice() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+
+            playBomb() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+
+            playLevelUp() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [350, 440, 587, 700].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.15);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.15);
+                });
+            }
+
+            playWin() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                [523, 659, 783, 1046, 1318].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                    gain.gain.setValueAtTime(0.3, now + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.12 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.12);
+                    osc.stop(now + idx * 0.12 + 0.3);
+                });
+            }
+        }
+
+        const sound = new SoundEngine();
+
+        /* ==========================================================================
+           2. NAVIGATION & MUSEUM HUB MANAGEMENT
+           ========================================================================== */
+        const views = {
+            hub: document.getElementById('museumHubView'),
+            catcher: document.getElementById('catcherGameView'),
+            slicer: document.getElementById('slicerGameView')
+        };
+
+        const currentModeLabel = document.getElementById('currentModeLabel');
+        const backToHubBtn = document.getElementById('backToHubBtn');
+
+        function updateHubHighScores() {
+            const catcherHigh = localStorage.getItem('fruit_catcher_highscore') || '0';
+            const slicerHigh = localStorage.getItem('fruit_slicer_highscore') || '0';
+            document.getElementById('catcherHighScoreHub').innerText = catcherHigh;
+            document.getElementById('slicerHighScoreHub').innerText = slicerHigh;
+        }
+
+        function switchView(target) {
+            views.hub.classList.add('hidden');
+            views.catcher.classList.add('hidden');
+            views.slicer.classList.add('hidden');
+
+            if (target === 'hub') {
+                views.hub.classList.remove('hidden');
+                currentModeLabel.innerText = 'Sảnh Trung Tâm';
+                backToHubBtn.classList.add('hidden');
+                updateHubHighScores();
+            } else if (target === 'catcher') {
+                views.catcher.classList.remove('hidden');
+                views.catcher.classList.add('flex');
+                currentModeLabel.innerText = 'Game Hứng Trái Cây';
+                backToHubBtn.classList.remove('hidden');
+                resizeCanvas(catcherCanvas);
+            } else if (target === 'slicer') {
+                views.slicer.classList.remove('hidden');
+                views.slicer.classList.add('flex');
+                currentModeLabel.innerText = 'Game Chém Hoa Quả';
+                backToHubBtn.classList.remove('hidden');
+                resizeCanvas(slicerCanvas);
+            }
+        }
+
+        document.getElementById('selectCatcherGame').addEventListener('click', () => switchView('catcher'));
+        document.getElementById('selectSlicerGame').addEventListener('click', () => switchView('slicer'));
+        document.getElementById('museumHomeBtn').addEventListener('click', () => switchView('hub'));
+        backToHubBtn.addEventListener('click', () => switchView('hub'));
+
+        // Global Sound Toggle
+        document.getElementById('globalSoundBtn').addEventListener('click', () => {
+            sound.muted = !sound.muted;
+            const icon = document.getElementById('globalSoundIcon');
+            icon.className = sound.muted ? 'fa-solid fa-volume-xmark text-xs text-red-400' : 'fa-solid fa-volume-high text-xs text-slate-300';
+        });
+
+        function resizeCanvas(c) {
+            c.width = 480;
+            c.height = 600;
+        }
+
+        /* ==========================================================================
+           3. GAME 1: HỨNG TRÁI CÂY (FRUIT CATCHER)
+           ========================================================================== */
+        const catcherCanvas = document.getElementById('catcherCanvas');
+        const catcherCtx = catcherCanvas.getContext('2d');
+
+        const CATCHER_DIFF = {
+            easy: { name: 'Dễ', lives: 4, baseSpeed: 2.5, bombChance: 0.05, spawnInterval: 60 },
+            medium: { name: 'Trung Bình', lives: 3, baseSpeed: 3.5, bombChance: 0.10, spawnInterval: 50 },
+            hard: { name: 'Khó', lives: 3, baseSpeed: 4.8, bombChance: 0.18, spawnInterval: 40 },
+            extreme: { name: 'Ác Mộng', lives: 2, baseSpeed: 6.0, bombChance: 0.26, spawnInterval: 30 }
+        };
+
+        let catcherState = {
+            active: false,
+            paused: false,
+            score: 0,
+            highScore: parseInt(localStorage.getItem('fruit_catcher_highscore') || '0'),
+            lives: 3,
+            combo: 0,
+            difficulty: 'medium',
+            powerup: null,
+            powerupTimer: 0,
+            spawnTimer: 0
+        };
+
+        const catcherBasket = { x: 195, y: 540, width: 90, height: 42, speed: 8, targetX: 195 };
+        let catcherItems = [];
+        let catcherParticles = [];
+        const catcherKeys = { left: false, right: false };
+
+        function updateCatcherUI() {
+            document.getElementById('catcherScoreDisplay').innerText = catcherState.score;
+            document.getElementById('catcherHighScoreDisplay').innerText = catcherState.highScore;
+
+            const comboBadge = document.getElementById('catcherComboBadge');
+            if (catcherState.combo > 1) {
+                comboBadge.classList.remove('hidden');
+                document.getElementById('catcherComboText').innerText = `x${catcherState.combo} Combo`;
+            } else {
+                comboBadge.classList.add('hidden');
+            }
+
+            const container = document.getElementById('catcherLivesContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < Math.max(3, catcherState.lives); i++) {
+                const h = document.createElement('i');
+                h.className = i < catcherState.lives ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart text-slate-600';
+                container.appendChild(h);
+            }
+        }
+
+        function startCatcher() {
+            const conf = CATCHER_DIFF[catcherState.difficulty];
+            catcherState.score = 0;
+            catcherState.lives = conf.lives;
+            catcherState.combo = 0;
+            catcherState.active = true;
+            catcherState.paused = false;
+            catcherState.powerup = null;
+            catcherItems = [];
+            catcherParticles = [];
+            catcherBasket.x = catcherCanvas.width / 2 - catcherBasket.width / 2;
+
+            document.getElementById('catcherStartOverlay').classList.add('hidden');
+            document.getElementById('catcherGameOverOverlay').classList.add('hidden');
+            document.getElementById('catcherPauseOverlay').classList.add('hidden');
+            updateCatcherUI();
+        }
+
+        function spawnCatcherItem() {
+            const conf = CATCHER_DIFF[catcherState.difficulty];
+            const isBomb = Math.random() < conf.bombChance;
+            const symbols = ['🍎', '🍊', '🍌', '🍓', '🍇', '🍉'];
+
+            catcherItems.push({
+                x: Math.random() * (catcherCanvas.width - 40) + 10,
+                y: -40,
+                width: 36,
+                height: 36,
+                symbol: isBomb ? '💣' : symbols[Math.floor(Math.random() * symbols.length)],
+                isBomb: isBomb,
+                points: isBomb ? -1 : 15,
+                speed: conf.baseSpeed + Math.random() * 1.5
+            });
+        }
+
+        function updateCatcher() {
+            if (!catcherState.active || catcherState.paused) return;
+
+            if (catcherKeys.left) catcherBasket.x -= catcherBasket.speed;
+            else if (catcherKeys.right) catcherBasket.x += catcherBasket.speed;
+            else catcherBasket.x += (catcherBasket.targetX - catcherBasket.x) * 0.25;
+
+            catcherBasket.x = Math.max(0, Math.min(catcherCanvas.width - catcherBasket.width, catcherBasket.x));
+
+            catcherState.spawnTimer++;
+            const conf = CATCHER_DIFF[catcherState.difficulty];
+            if (catcherState.spawnTimer >= conf.spawnInterval) {
+                spawnCatcherItem();
+                catcherState.spawnTimer = 0;
+            }
+
+            for (let i = catcherItems.length - 1; i >= 0; i--) {
+                const item = catcherItems[i];
+                item.y += item.speed;
+
+                if (
+                    item.y + item.height >= catcherBasket.y &&
+                    item.y <= catcherBasket.y + catcherBasket.height &&
+                    item.x + item.width >= catcherBasket.x &&
+                    item.x <= catcherBasket.x + catcherBasket.width
+                ) {
+                    if (item.isBomb) {
+                        sound.playBomb();
+                        catcherState.lives--;
+                        catcherState.combo = 0;
+                        if (catcherState.lives <= 0) {
+                            catcherState.active = false;
+                            if (catcherState.score > catcherState.highScore) {
+                                catcherState.highScore = catcherState.score;
+                                localStorage.setItem('fruit_catcher_highscore', catcherState.highScore);
+                            }
+                            document.getElementById('catcherFinalScore').innerText = catcherState.score;
+                            document.getElementById('catcherGameOverOverlay').classList.remove('hidden');
+                        }
+                    } else {
+                        sound.playCatch();
+                        catcherState.combo++;
+                        catcherState.score += item.points * (1 + Math.floor(catcherState.combo / 5) * 0.5);
+                        updateCatcherUI();
+                    }
+                    catcherItems.splice(i, 1);
+                } else if (item.y > catcherCanvas.height) {
+                    if (!item.isBomb) catcherState.combo = 0;
+                    catcherItems.splice(i, 1);
+                }
+            }
+        }
+
+        function drawCatcher() {
+            catcherCtx.clearRect(0, 0, catcherCanvas.width, catcherCanvas.height);
+
+            // Basket
+            catcherCtx.fillStyle = '#3b82f6';
+            catcherCtx.fillRect(catcherBasket.x, catcherBasket.y, catcherBasket.width, catcherBasket.height);
+
+            // Items
+            catcherCtx.font = '28px Fredoka, sans-serif';
+            catcherCtx.textAlign = 'center';
+            catcherItems.forEach(item => {
+                catcherCtx.fillText(item.symbol, item.x + 18, item.y + 28);
+            });
+        }
+
+        document.getElementById('startCatcherBtn').addEventListener('click', startCatcher);
+        document.getElementById('restartCatcherBtn').addEventListener('click', startCatcher);
+        document.getElementById('catcherPauseBtn').addEventListener('click', () => {
+            if (!catcherState.active) return;
+            catcherState.paused = !catcherState.paused;
+            document.getElementById('catcherPauseOverlay').classList.toggle('hidden', !catcherState.paused);
+        });
+        document.getElementById('resumeCatcherBtn').addEventListener('click', () => {
+            catcherState.paused = false;
+            document.getElementById('catcherPauseOverlay').classList.add('hidden');
+        });
+        document.getElementById('restartCatcherPauseBtn').addEventListener('click', () => {
+            catcherState.paused = false;
+            startCatcher();
+        });
+
+        catcherCanvas.addEventListener('mousemove', (e) => {
+            const rect = catcherCanvas.getBoundingClientRect();
+            catcherBasket.targetX = (e.clientX - rect.left) * (catcherCanvas.width / rect.width) - catcherBasket.width / 2;
+        });
+
+        /* ==========================================================================
+           4. GAME 2: CHÉM HOA QUẢ (FRUIT NINJA / SLICER)
+           ========================================================================== */
+        const slicerCanvas = document.getElementById('slicerCanvas');
+        const slicerCtx = slicerCanvas.getContext('2d');
+
+        const SLICER_FRUITS = [
+            { name: 'Táo', symbol: '🍎', color: '#ef4444', points: 10 },
+            { name: 'Cam', symbol: '🍊', color: '#f97316', points: 12 },
+            { name: 'Chuối', symbol: '🍌', color: '#eab308', points: 15 },
+            { name: 'Dâu', symbol: '🍓', color: '#f43f5e', points: 20 },
+            { name: 'Nho', symbol: '🍇', color: '#a855f7', points: 22 },
+            { name: 'Dưa Hấu', symbol: '🍉', color: '#22c55e', points: 25 },
+            { name: 'Đào', symbol: '🍑', color: '#fda4af', points: 30 }
+        ];
+
+        let slicerState = {
+            active: false,
+            paused: false,
+            score: 0,
+            highScore: parseInt(localStorage.getItem('fruit_slicer_highscore') || '0'),
+            lives: 3,
+            level: 1, // 1: 0-99, 2: 100-199, 3: 200-499, 4: 500-999, 5: 1000+ (FIRE MODE)
+            isFireMode: false,
+            spawnTimer: 0,
+            spawnInterval: 60
+        };
+
+        let slicerObjects = []; // Active whole fruits and bombs
+        let slicerHalves = [];  // Sliced fruit halves
+        let slicerParticles = []; // Juices & Explosions
+        let bladeTrail = [];    // Mouse slice track
+
+        let isMouseDown = false;
+        let lastMousePos = null;
+
+        class SlicedHalf {
+            constructor(x, y, symbol, color, side, vx, vy, isFire) {
+                this.x = x;
+                this.y = y;
+                this.symbol = symbol;
+                this.color = isFire ? '#ef4444' : color;
+                this.side = side; // -1 left, 1 right
+                this.vx = vx + side * (2 + Math.random() * 2);
+                this.vy = vy - 1;
+                this.rotation = 0;
+                this.rotSpeed = side * (0.1 + Math.random() * 0.1);
+                this.alpha = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.35; // Gravity
+                this.rotation += this.rotSpeed;
+                this.alpha -= 0.015;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                // Draw Half semi-circle cut fruit
+                ctx.font = '28px Fredoka, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Clip half
+                ctx.beginPath();
+                if (this.side < 0) {
+                    ctx.rect(-30, -30, 30, 60);
+                } else {
+                    ctx.rect(0, -30, 30, 60);
+                }
+                ctx.clip();
+
+                ctx.fillText(this.symbol, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        class SlicerParticle {
+            constructor(x, y, color, isFire = false) {
+                this.x = x;
+                this.y = y;
+                this.color = isFire ? (Math.random() < 0.5 ? '#f97316' : '#ef4444') : color;
+                this.radius = Math.random() * (isFire ? 6 : 4) + 2;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8 - 2;
+                this.alpha = 1;
+                this.isFire = isFire;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.2;
+                this.alpha -= 0.025;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                if (this.isFire) {
+                    ctx.shadowColor = '#f97316';
+                    ctx.shadowBlur = 10;
+                }
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function updateSlicerUI() {
+            document.getElementById('slicerScoreDisplay').innerText = slicerState.score;
+
+            // Level progression calculations based on prompt requirements
+            let levelText = '1 (Bình Thường)';
+            let isFire = false;
+
+            if (slicerState.score >= 2000) {
+                // WIN CONDITION!
+                triggerWinGame();
+                return;
+            } else if (slicerState.score >= 1000) {
+                slicerState.level = 5;
+                levelText = '5 🔥 BẮT ĐẦU RỰC LỬA!';
+                isFire = true;
+            } else if (slicerState.score >= 500) {
+                slicerState.level = 4;
+                levelText = '4 (CỰC KHÓ - SIÊU TỐC)';
+            } else if (slicerState.score >= 2000) {
+                slicerState.level = 3;
+                levelText = '3 (Thử Thách Thêm Bom)';
+            } else if (slicerState.score >= 100) {
+                slicerState.level = 2;
+                levelText = '2 (Tăng Tốc Độc Đáo)';
+            } else {
+                slicerState.level = 1;
+            }
+
+            const levelDisplay = document.getElementById('slicerLevelDisplay');
+            levelDisplay.innerText = levelText;
+            levelDisplay.className = isFire ? 'text-xs font-black text-red-500 animate-pulse' : 'text-xs font-black text-amber-400';
+
+            // Fire Mode state check
+            if (isFire && !slicerState.isFireMode) {
+                slicerState.isFireMode = true;
+                sound.playLevelUp();
+                const fireOverlay = document.getElementById('slicerFireOverlay');
+                fireOverlay.classList.remove('opacity-0');
+                fireOverlay.classList.add('opacity-100');
+
+                document.getElementById('slicerCanvasContainer').classList.add('fire-border');
+                const banner = document.getElementById('slicerModeBanner');
+                banner.classList.remove('hidden');
+                document.getElementById('slicerModeBannerText').innerText = '🔥 CHẾ ĐỘ RỰC LỬA RED FIRE MODE DÀNH CHO NINJA TỐI THƯỢNG!';
+            }
+
+            // Lives UI
+            const container = document.getElementById('slicerLivesContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const h = document.createElement('i');
+                h.className = i < slicerState.lives ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart text-slate-700';
+                container.appendChild(h);
+            }
+        }
+
+        function triggerWinGame() {
+            slicerState.active = false;
+            sound.playWin();
+
+            if (slicerState.score > slicerState.highScore) {
+                slicerState.highScore = slicerState.score;
+                localStorage.setItem('fruit_slicer_highscore', slicerState.highScore);
+            }
+
+            document.getElementById('slicerWinScore').innerText = slicerState.score;
+            document.getElementById('slicerWinOverlay').classList.remove('hidden');
+        }
+
+        function startSlicer() {
+            slicerState.score = 0;
+            slicerState.lives = 3;
+            slicerState.level = 1;
+            slicerState.active = true;
+            slicerState.paused = false;
+            slicerState.isFireMode = false;
+            slicerState.spawnTimer = 0;
+
+            slicerObjects = [];
+            slicerHalves = [];
+            slicerParticles = [];
+            bladeTrail = [];
+
+            document.getElementById('slicerStartOverlay').classList.add('hidden');
+            document.getElementById('slicerGameOverOverlay').classList.add('hidden');
+            document.getElementById('slicerPauseOverlay').classList.add('hidden');
+            document.getElementById('slicerWinOverlay').classList.add('hidden');
+            document.getElementById('slicerFireOverlay').classList.add('opacity-0');
+            document.getElementById('slicerCanvasContainer').classList.remove('fire-border');
+            document.getElementById('slicerModeBanner').classList.add('hidden');
+
+            updateSlicerUI();
+        }
+
+        function spawnSlicerFruit() {
+            const isBomb = slicerState.level >= 2 && Math.random() < (slicerState.level * 0.08);
+            const fruitData = SLICER_FRUITS[Math.floor(Math.random() * SLICER_FRUITS.length)];
+
+            // Position & Toss trajectory physics (tossing upwards from bottom)
+            const x = Math.random() * (slicerCanvas.width - 120) + 60;
+            const y = slicerCanvas.height + 30;
+
+            // Higher levels = faster launch speed + horizontal variance
+            const speedUp = 12 + (slicerState.level * 1.5) + Math.random() * 3;
+            const vx = (slicerCanvas.width / 2 - x) * 0.02 + (Math.random() - 0.5) * 4;
+            const vy = -speedUp;
+
+            slicerObjects.push({
+                x: x,
+                y: y,
+                radius: 26,
+                symbol: isBomb ? '💣' : fruitData.symbol,
+                color: fruitData.color,
+                points: fruitData.points,
+                isBomb: isBomb,
+                vx: vx,
+                vy: vy,
+                rotation: 0,
+                rotSpeed: (Math.random() - 0.5) * 0.1
+            });
+        }
+
+        // Line Segment Intersection helper for Blade Cut
+        function lineIntersectsCircle(p1, p2, circle) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len === 0) return false;
+
+            const u = ((circle.x - p1.x) * dx + (circle.y - p1.y) * dy) / (len * len);
+            const clampedU = Math.max(0, Math.min(1, u));
+
+            const nearestX = p1.x + clampedU * dx;
+            const nearestY = p1.y + clampedU * dy;
+
+            const distX = circle.x - nearestX;
+            const distY = circle.y - nearestY;
+
+            return (distX * distX + distY * distY) <= (circle.radius * circle.radius);
+        }
+
+        function checkSliceCollisions(p1, p2) {
+            for (let i = slicerObjects.length - 1; i >= 0; i--) {
+                const obj = slicerObjects[i];
+
+                if (lineIntersectsCircle(p1, p2, obj)) {
+                    if (obj.isBomb) {
+                        sound.playBomb();
+                        slicerState.lives--;
+                        updateSlicerUI();
+
+                        // Create bomb explosion particles
+                        for (let k = 0; k < 25; k++) {
+                            slicerParticles.push(new SlicerParticle(obj.x, obj.y, '#ef4444', true));
+                        }
+
+                        slicerObjects.splice(i, 1);
+
+                        if (slicerState.lives <= 0) {
+                            slicerState.active = false;
+                            if (slicerState.score > slicerState.highScore) {
+                                slicerState.highScore = slicerState.score;
+                                localStorage.setItem('fruit_slicer_highscore', slicerState.highScore);
+                            }
+                            document.getElementById('slicerFinalScore').innerText = slicerState.score;
+                            document.getElementById('slicerGameOverOverlay').classList.remove('hidden');
+                        }
+                    } else {
+                        // Fruit Sliced Successfully!
+                        sound.playSlice();
+
+                        // Add score based on level
+                        const pointsGained = obj.points * (slicerState.isFireMode ? 2 : 1);
+                        slicerState.score += pointsGained;
+
+                        // Spawn 2 split fruit halves
+                        slicerHalves.push(new SlicedHalf(obj.x, obj.y, obj.symbol, obj.color, -1, obj.vx, obj.vy, slicerState.isFireMode));
+                        slicerHalves.push(new SlicedHalf(obj.x, obj.y, obj.symbol, obj.color, 1, obj.vx, obj.vy, slicerState.isFireMode));
+
+                        // Explosive juice particles
+                        for (let k = 0; k < 15; k++) {
+                            slicerParticles.push(new SlicerParticle(obj.x, obj.y, obj.color, slicerState.isFireMode));
+                        }
+
+                        slicerObjects.splice(i, 1);
+                        updateSlicerUI();
+                    }
+                }
+            }
+        }
+
+        function updateSlicer() {
+            if (!slicerState.active || slicerState.paused) return;
+
+            // Spawn fruits timer
+            slicerState.spawnTimer++;
+            // Higher level = more fruits spawned faster
+            let interval = Math.max(20, 65 - slicerState.level * 8);
+            if (slicerState.level >= 4) interval = 22; // Extreme level multi-spawns
+
+            if (slicerState.spawnTimer >= interval) {
+                const spawnCount = slicerState.level >= 4 ? (Math.random() < 0.6 ? 2 : 3) : (Math.random() < 0.3 ? 2 : 1);
+                for (let c = 0; c < spawnCount; c++) {
+                    spawnSlicerFruit();
+                }
+                slicerState.spawnTimer = 0;
+            }
+
+            // Update Fruits / Bombs physics
+            for (let i = slicerObjects.length - 1; i >= 0; i--) {
+                const obj = slicerObjects[i];
+                obj.x += obj.vx;
+                obj.y += obj.vy;
+                obj.vy += 0.38; // Gravity pulling fruit back down
+                obj.rotation += obj.rotSpeed;
+
+                // Missed fruits that fall off bottom of screen
+                if (obj.y > slicerCanvas.height + 60) {
+                    if (!obj.isBomb) {
+                        slicerState.lives--;
+                        updateSlicerUI();
+                        if (slicerState.lives <= 0) {
+                            slicerState.active = false;
+                            if (slicerState.score > slicerState.highScore) {
+                                slicerState.highScore = slicerState.score;
+                                localStorage.setItem('fruit_slicer_highscore', slicerState.highScore);
+                            }
+                            document.getElementById('slicerFinalScore').innerText = slicerState.score;
+                            document.getElementById('slicerGameOverOverlay').classList.remove('hidden');
+                        }
+                    }
+                    slicerObjects.splice(i, 1);
+                }
+            }
+
+            // Update Sliced Halves
+            for (let i = slicerHalves.length - 1; i >= 0; i--) {
+                slicerHalves[i].update();
+                if (slicerHalves[i].alpha <= 0 || slicerHalves[i].y > slicerCanvas.height + 60) {
+                    slicerHalves.splice(i, 1);
+                }
+            }
+
+            // Update Particles
+            for (let i = slicerParticles.length - 1; i >= 0; i--) {
+                slicerParticles[i].update();
+                if (slicerParticles[i].alpha <= 0) slicerParticles.splice(i, 1);
+            }
+
+            // Fade blade trail points
+            const now = Date.now();
+            bladeTrail = bladeTrail.filter(p => now - p.time < 180);
+        }
+
+        function drawSlicer() {
+            slicerCtx.clearRect(0, 0, slicerCanvas.width, slicerCanvas.height);
+
+            // Draw Whole Fruits & Bombs
+            slicerCtx.textAlign = 'center';
+            slicerCtx.textBaseline = 'middle';
+
+            slicerObjects.forEach(obj => {
+                slicerCtx.save();
+                slicerCtx.translate(obj.x, obj.y);
+                slicerCtx.rotate(obj.rotation);
+
+                if (slicerState.isFireMode) {
+                    // Fire Mode glowing red/orange aura on fruits
+                    slicerCtx.shadowColor = '#ef4444';
+                    slicerCtx.shadowBlur = 18;
+                } else {
+                    slicerCtx.shadowColor = 'rgba(0,0,0,0.3)';
+                    slicerCtx.shadowBlur = 8;
+                }
+
+                slicerCtx.font = '36px Fredoka, sans-serif';
+                slicerCtx.fillText(obj.symbol, 0, 0);
+                slicerCtx.restore();
+            });
+
+            // Draw Sliced Halves
+            slicerHalves.forEach(half => half.draw(slicerCtx));
+
+            // Draw Juice & Fire Particles
+            slicerParticles.forEach(p => p.draw(slicerCtx));
+
+            // Draw Glowing Blade Trail
+            if (bladeTrail.length > 1) {
+                slicerCtx.save();
+                slicerCtx.beginPath();
+                slicerCtx.moveTo(bladeTrail[0].x, bladeTrail[0].y);
+
+                for (let i = 1; i < bladeTrail.length; i++) {
+                    slicerCtx.lineTo(bladeTrail[i].x, bladeTrail[i].y);
+                }
+
+                slicerCtx.strokeStyle = slicerState.isFireMode ? '#f97316' : '#f8fafc';
+                slicerCtx.lineWidth = slicerState.isFireMode ? 6 : 4;
+                slicerCtx.lineCap = 'round';
+                slicerCtx.lineJoin = 'round';
+                slicerCtx.shadowColor = slicerState.isFireMode ? '#ef4444' : '#38bdf8';
+                slicerCtx.shadowBlur = slicerState.isFireMode ? 16 : 10;
+                slicerCtx.stroke();
+                slicerCtx.restore();
+            }
+        }
+
+        // Slice Input Handling (Mouse & Touch)
+        function handlePointerMove(clientX, clientY) {
+            if (!slicerState.active || slicerState.paused) return;
+
+            const rect = slicerCanvas.getBoundingClientRect();
+            const currentPos = {
+                x: (clientX - rect.left) * (slicerCanvas.width / rect.width),
+                y: (clientY - rect.top) * (slicerCanvas.height / rect.height),
+                time: Date.now()
+            };
+
+            bladeTrail.push(currentPos);
+
+            if (lastMousePos) {
+                checkSliceCollisions(lastMousePos, currentPos);
+            }
+
+            lastMousePos = currentPos;
+        }
+
+        slicerCanvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            lastMousePos = null;
+            handlePointerMove(e.clientX, e.clientY);
+        });
+
+        slicerCanvas.addEventListener('mousemove', (e) => {
+            if (isMouseDown || true) { // Allow slicing anytime cursor moves
+                handlePointerMove(e.clientX, e.clientY);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isMouseDown = false;
+            lastMousePos = null;
+        });
+
+        slicerCanvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                e.preventDefault();
+                lastMousePos = null;
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+
+        slicerCanvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                e.preventDefault();
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: false });
+
+        // Slicer Button Listeners
+        document.getElementById('startSlicerBtn').addEventListener('click', startSlicer);
+        document.getElementById('restartSlicerBtn').addEventListener('click', startSlicer);
+        document.getElementById('restartSlicerWinBtn').addEventListener('click', startSlicer);
+
+        document.getElementById('slicerPauseBtn').addEventListener('click', () => {
+            if (!slicerState.active) return;
+            slicerState.paused = !slicerState.paused;
+            document.getElementById('slicerPauseOverlay').classList.toggle('hidden', !slicerState.paused);
+        });
+        document.getElementById('resumeSlicerBtn').addEventListener('click', () => {
+            slicerState.paused = false;
+            document.getElementById('slicerPauseOverlay').classList.add('hidden');
+        });
+        document.getElementById('restartSlicerPauseBtn').addEventListener('click', () => {
+            slicerState.paused = false;
+            startSlicer();
+        });
+
+        /* ==========================================================================
+           5. MAIN GAME LOOP & INITIALIZATION
+           ========================================================================== */
+        function mainLoop() {
+            updateCatcher();
+            drawCatcher();
+
+            updateSlicer();
+            drawSlicer();
+
+            requestAnimationFrame(mainLoop);
+        }
+
+        window.addEventListener('load', () => {
+            updateHubHighScores();
+            requestAnimationFrame(mainLoop);
+        });
+    </script>
+</body>
+</html>
