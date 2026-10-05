@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cờ Vua Cao Cấp - Luxury Chess Experience</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Cinzel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chess.js Engine Library v0.10.3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+  <style>
+    /* Custom Luxury Theme Fonts & Variables */
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+      color: #f8fafc;
+      min-height: 100vh;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .font-serif-title {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* Custom Glassmorphism Styles */
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Chessboard Wood & Dark Styling */
+    .chess-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      aspect-ratio: 1 / 1;
+      border: 12px solid #2b1d14;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    /* Square Colors - Luxury Mahogany / Birch Tone */
+    .square-light {
+      background-color: #eadeca;
+      color: #4a3525;
+    }
+    .square-dark {
+      background-color: #78472a;
+      color: #eadeca;
+    }
+
+    /* Square Highlights */
+    .square-selected {
+      background-color: #d97706 !important; /* Amber glow */
+    }
+    .square-last-move {
+      background-color: rgba(234, 179, 8, 0.45) !important;
+    }
+    .square-in-check {
+      background-color: #ef4444 !important;
+      animation: pulse-red 1.2s infinite alternate;
+    }
+
+    @keyframes pulse-red {
+      0% { box-shadow: inset 0 0 12px #991b1b; }
+      100% { box-shadow: inset 0 0 24px #f87171; }
+    }
+
+    /* Valid Move Hints */
+    .move-hint-dot {
+      width: 28%;
+      height: 28%;
+      background-color: rgba(16, 185, 129, 0.65);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
+      pointer-events: none;
+    }
+    .capture-hint-ring {
+      width: 90%;
+      height: 90%;
+      border: 4px solid rgba(239, 68, 68, 0.75);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* Piece Animations */
+    .chess-piece {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      transition: transform 0.15s ease-out;
+      z-index: 10;
+    }
+    .chess-piece:active {
+      cursor: grabbing;
+      transform: scale(1.15);
+      z-index: 20;
+    }
+
+    /* Coordinates styling */
+    .coord-label {
+      position: absolute;
+      font-size: 0.7rem;
+      font-weight: 700;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+    .coord-file { bottom: 2px; right: 4px; }
+    .coord-rank { top: 2px; left: 4px; }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #64748b;
+    }
+  </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 min-h-screen flex flex-col justify-between">
+
+  <!-- HEADER / NAVIGATION -->
+  <header class="max-w-6xl mx-auto w-full mb-4">
+    <div class="glass-panel rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 text-2xl shadow-inner">
+          <i class="fa-solid me-1 fa-chess-king"></i>
+        </div>
+        <div>
+          <h1 class="font-serif-title text-xl sm:text-2xl font-bold tracking-wide text-amber-100 flex items-center gap-2">
+            CỜ VUA CAO CẤP
+            <span class="text-xs bg-amber-500/20 text-amber-300 font-sans px-2 py-0.5 rounded-full border border-amber-500/30">PRO</span>
+          </h1>
+          <p class="text-xs text-slate-400">Trải nghiệm cờ vua hiện đại & trí tuệ AI</p>
+        </div>
+      </div>
+
+      <!-- Quick Mode & Controls Bar -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60 flex items-center gap-2 text-xs">
+          <i class="fa-solid fa-gamepad text-amber-400"></i>
+          <span class="text-slate-300 hidden sm:inline">Chế độ:</span>
+          <select id="modeSelect" class="bg-transparent text-amber-200 font-medium focus:outline-none cursor-pointer">
+            <option value="pvp" class="bg-slate-900 text-slate-100">2 Người (Pass & Play)</option>
+            <option value="ai-easy" class="bg-slate-900 text-slate-100">Đấu Máy (Dễ)</option>
+            <option value="ai-medium" selected class="bg-slate-900 text-slate-100">Đấu Máy (Vừa)</option>
+            <option value="ai-hard" class="bg-slate-900 text-slate-100">Đấu Máy (Khó)</option>
+          </select>
+        </div>
+
+        <button id="soundToggleBtn" class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-slate-300 hover:text-amber-300 hover:bg-slate-700/80 transition-colors" title="Bật/Tắt Âm thanh">
+          <i class="fa-solid fa-volume-high text-sm"></i>
+        </button>
+
+        <button id="themeToggleBtn" class="p-2.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-slate-300 hover:text-amber-300 hover:bg-slate-700/80 transition-colors" title="Đổi màu bàn cờ">
+          <i class="fa-solid fa-palette text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GAME LAYOUT CONTAINER -->
+  <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-grow">
+
+    <!-- LEFT / TOP PANEL: BLACK PLAYER INFO & GAME STATUS -->
+    <div class="lg:col-span-3 order-2 lg:order-1 flex flex-col gap-4">
+      
+      <!-- Top Player Card (Black / AI) -->
+      <div id="topPlayerCard" class="glass-panel p-4 rounded-2xl flex flex-col gap-3 border-l-4 border-l-slate-400 transition-all">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <div class="w-10 h-10 rounded-full bg-slate-900 border border-slate-600 flex items-center justify-center text-slate-200 text-lg shadow">
+                <i id="topPlayerIcon" class="fa-solid fa-robot"></i>
+              </div>
+              <span id="topTurnBadge" class="hidden absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-900 animate-ping"></span>
+            </div>
+            <div>
+              <h3 id="topPlayerName" class="font-bold text-sm text-slate-100">Máy (AI Vừa)</h3>
+              <p id="topPlayerSub" class="text-xs text-slate-400">Quân Đen</p>
+            </div>
+          </div>
+          <!-- Top Timer -->
+          <div id="topTimerBox" class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-700/80 font-mono font-bold text-base text-slate-300 flex items-center gap-2">
+            <i class="fa-regular fa-clock text-xs text-slate-400"></i>
+            <span id="topTimer">10:00</span>
+          </div>
+        </div>
+
+        <!-- Captured Pieces by Top Player (White pieces captured) -->
+        <div class="bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80 min-h-[42px] flex items-center justify-between">
+          <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Ăn quân:</span>
+          <div id="topCapturedBox" class="flex items-center gap-0.5 text-lg flex-wrap justify-end"></div>
+        </div>
+      </div>
+
+      <!-- Turn Indicator Bar -->
+      <div class="glass-panel p-3 rounded-2xl flex items-center justify-between">
+        <span class="text-xs text-slate-400 font-medium">Lượt chơi:</span>
+        <div id="turnBadge" class="flex items-center gap-2 bg-amber-500/10 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-semibold">
+          <span class="w-2.5 h-2.5 rounded-full bg-white shadow-sm inline-block"></span>
+          <span id="turnText">Lượt Quân Trắng</span>
+        </div>
+      </div>
+
+      <!-- Controls Panel -->
+      <div class="glass-panel p-4 rounded-2xl flex flex-col gap-2.5">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-400"></i> Điều khiển
+        </h4>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnNewGame" class="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold py-2.5 px-3 rounded-xl shadow-lg transition-all text-xs">
+            <i class="fa-solid fa-rotate-right"></i> Ván Mới
+          </button>
+          <button id="btnUndo" class="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold py-2.5 px-3 rounded-xl transition-all text-xs">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Đi Lại
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnFlip" class="flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold py-2 px-3 rounded-xl transition-all text-xs">
+            <i class="fa-solid fa-arrows-rotate"></i> Xoay Bàn
+          </button>
+          <button id="btnResign" class="flex items-center justify-center gap-2 bg-red-950/40 hover:bg-red-900/50 text-red-300 border border-red-800/50 font-semibold py-2 px-3 rounded-xl transition-all text-xs">
+            <i class="fa-solid fa-flag"></i> Đầu Hàng
+          </button>
+        </div>
+
+        <!-- Timer Preset Selector -->
+        <div class="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between text-xs">
+          <span class="text-slate-400">Thời gian:</span>
+          <select id="timerPreset" class="bg-slate-900 text-amber-300 border border-slate-700 rounded-lg px-2 py-1 text-xs focus:outline-none">
+            <option value="180">3 Phút (Blitz)</option>
+            <option value="300">5 Phút (Rapid)</option>
+            <option value="600" selected>10 Phút (Standard)</option>
+            <option value="900">15 Phút (Classical)</option>
+            <option value="0">Không giới hạn</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CENTER PANEL: THE CHESSBOARD -->
+    <div class="lg:col-span-6 order-1 lg:order-2 flex flex-col items-center justify-center">
+      <div class="w-full max-w-[540px] relative">
+        
+        <!-- Chess Board Element -->
+        <div id="board" class="chess-board w-full"></div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT / BOTTOM PANEL: BOTTOM PLAYER INFO & MOVE HISTORY -->
+    <div class="lg:col-span-3 order-3 lg:order-3 flex flex-col gap-4">
+
+      <!-- Bottom Player Card (White / User) -->
+      <div id="bottomPlayerCard" class="glass-panel p-4 rounded-2xl flex flex-col gap-3 border-l-4 border-l-amber-500 transition-all">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <div class="w-10 h-10 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-slate-900 text-lg shadow">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <span id="bottomTurnBadge" class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-900 animate-ping"></span>
+            </div>
+            <div>
+              <h3 id="bottomPlayerName" class="font-bold text-sm text-slate-100">Người chơi</h3>
+              <p id="bottomPlayerSub" class="text-xs text-amber-400">Quân Trắng</p>
+            </div>
+          </div>
+          <!-- Bottom Timer -->
+          <div id="bottomTimerBox" class="bg-slate-900/80 px-3 py-1.5 rounded-xl border border-amber-500/40 font-mono font-bold text-base text-amber-300 flex items-center gap-2 shadow-inner">
+            <i class="fa-regular fa-clock text-xs text-amber-400"></i>
+            <span id="bottomTimer">10:00</span>
+          </div>
+        </div>
+
+        <!-- Captured Pieces by Bottom Player (Black pieces captured) -->
+        <div class="bg-slate-900/40 p-2.5 rounded-xl border border-slate-800/80 min-h-[42px] flex items-center justify-between">
+          <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Ăn quân:</span>
+          <div id="bottomCapturedBox" class="flex items-center gap-0.5 text-lg flex-wrap justify-end"></div>
+        </div>
+      </div>
+
+      <!-- Move History Panel -->
+      <div class="glass-panel p-4 rounded-2xl flex flex-col gap-2 flex-grow min-h-[220px] max-h-[320px]">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-700/60">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-list-ol text-amber-400"></i> Lịch sử nước đi
+          </h4>
+          <span id="moveCountText" class="text-[11px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md font-mono">0 nước</span>
+        </div>
+
+        <!-- Scrollable History List -->
+        <div id="moveHistoryList" class="overflow-y-auto flex-grow pr-1 space-y-1 text-xs font-mono">
+          <p class="text-slate-500 italic text-center py-6 text-xs">Chưa có nước đi nào</p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="max-w-6xl mx-auto w-full mt-6 text-center text-xs text-slate-500 py-2 border-t border-slate-800/60">
+    <p>Giao diện Cờ Vua Cao Cấp trên Gemini Canvas &bull; Thiết kế chuẩn FIDE & AI Minimax</p>
+  </footer>
+
+  <!-- MODAL: GAME OVER POPUP -->
+  <div id="gameOverModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-panel max-w-md w-full rounded-3xl p-6 sm:p-8 text-center flex flex-col items-center gap-4 border border-amber-500/30 shadow-2xl transform scale-95 transition-transform duration-300" id="gameOverContent">
+      <div id="modalTrophyIcon" class="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-600 to-yellow-400 flex items-center justify-center text-white text-4xl shadow-lg shadow-amber-500/30">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+
+      <div>
+        <h2 id="modalTitle" class="font-serif-title text-2xl sm:text-3xl font-bold text-amber-200">CHIẾN THẮNG!</h2>
+        <p id="modalReason" class="text-sm text-slate-300 mt-1">Chiếu bí đối thủ!</p>
+      </div>
+
+      <div class="bg-slate-900/60 w-full p-3 rounded-xl border border-slate-800 text-xs text-slate-400 flex justify-around">
+        <div>Tổng nước đi: <span id="modalTotalMoves" class="text-amber-300 font-bold">0</span></div>
+        <div>Thời gian chơi: <span id="modalPlayTime" class="text-amber-300 font-bold">00:00</span></div>
+      </div>
+
+      <div class="flex gap-3 w-full mt-2">
+        <button id="modalBtnRestart" class="flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 rounded-xl shadow-lg text-sm transition-all">
+          <i class="fa-solid fa-rotate-right me-2"></i> Chơi Ván Mới
+        </button>
+        <button id="modalBtnClose" class="px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-sm border border-slate-700">
+          Xem Bàn Cờ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PAWN PROMOTION -->
+  <div id="promotionModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="glass-panel max-w-xs w-full rounded-2xl p-5 text-center flex flex-col items-center gap-4 border border-amber-500/40">
+      <h3 class="font-serif-title text-lg font-bold text-amber-200">Chọn quân Phong Cấp</h3>
+      <div id="promotionOptions" class="grid grid-cols-4 gap-3 w-full">
+        <!-- Promotion piece options generated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===================================================================
+       LUXURY CHESS APPLICATION - JS LOGIC & ENGINE INTEGRATION
+       =================================================================== */
+
+    // Web Audio Synthesizer for Chess Sound Effects
+    class ChessAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      initCtx() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, type, duration, gainVal = 0.1) {
+        if (!this.enabled) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.warn("Audio playback issue:", e);
+        }
+      }
+
+      playMove() {
+        this.playTone(320, 'sine', 0.1, 0.15);
+      }
+
+      playCapture() {
+        this.playTone(180, 'triangle', 0.15, 0.25);
+        setTimeout(() => this.playTone(120, 'sawtooth', 0.1, 0.15), 50);
+      }
+
+      playCheck() {
+        this.playTone(587.33, 'sine', 0.2, 0.2); // D5
+        setTimeout(() => this.playTone(880, 'sine', 0.25, 0.2), 100); // A5
+      }
+
+      playGameEnd() {
+        [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'triangle', 0.3, 0.2), idx * 120);
+        });
+      }
+    }
+
+    // High quality Vector SVG Graphics for Chess Pieces
+    const PIECE_SVGS = {
+      w: {
+        p: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 22.5,9 C 23.88,9 25,7.88 25,6.5 C 25,5.12 23.88,4 22.5,4 C 21.12,4 20,5.12 20,6.5 C 20,7.88 21.12,9 22.5,9 z M 24,10 L 21,10 L 21,18 L 16,21 L 16,23 L 29,23 L 29,21 L 24,18 L 24,10 z M 13,32 L 32,32 L 32,25 L 13,25 L 13,32 z M 10,36 L 35,36 L 35,33 L 10,33 L 10,36 z" fill="#fff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        r: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z M 12,36 L 33,36 L 33,32 L 12,32 L 12,36 z M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 31,17 L 31,29 L 14,29 L 14,17 L 11,14 z M 14,31 L 31,31 L 31,32 L 14,32 L 14,31 z" fill="#fff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        n: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18 C 20.5,18.5 16,18 12,13 C 14,20 8,24 8,24 C 11.5,18 11.5,14 10.5,12 C 10.5,12 18,7 22,10 z" fill="#fff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/><path d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z" fill="#333" stroke="#333"/></svg>`,
+        b: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><g fill="none" stroke="#333" stroke-width="1.5" stroke-linejoin="round"><path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.64,38.99 6.67,38.97 6,38 C 7.34,36.54 9,36 9,36 z" fill="#fff"/><path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,22 30,22 C 30,22 25.5,16 22.5,10 C 19.5,16 15,22 15,22 C 15,22 14.5,30.5 15,32 z" fill="#fff"/><circle cx="22.5" cy="8" r="2.5" fill="#fff"/></g></svg>`,
+        q: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 9 13 A 2 2 0 1 1 5,13 A 2 2 0 1 1 9 13 z M 20 9 A 2 2 0 1 1 16,9 A 2 2 0 1 1 20 9 z M 27 9 A 2 2 0 1 1 23,9 A 2 2 0 1 1 27 9 z M 38 13 A 2 2 0 1 1 34,13 A 2 2 0 1 1 38 13 z M 32 20 A 2 2 0 1 1 28,20 A 2 2 0 1 1 32 20 z M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 25,10 L 20,10 L 14,25 L 7,14 L 9,26 z M 9,28 L 36,28 L 36,31 L 9,31 L 9,28 z M 11,33 C 12,36 33,36 34,33 L 11,33 z" fill="#fff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        k: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 22.5,11.63 L 22.5,6 M 20,8 L 25,8 M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 24,11.5 21,11.5 22.5,11.5 C 24,11.5 21,11.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25 z" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round"/><path d="M 11.5,37 C 17,35.5 28,35.5 33.5,37 C 33.5,37 36.5,36.5 37.5,30 C 32.5,29 22.5,29 11.5,29 C 11.5,29 8.5,29.5 7.5,30 C 8.5,36.5 11.5,37 11.5,37 z" fill="#fff" stroke="#333" stroke-width="1.5" stroke-linejoin="round"/></svg>`
+      },
+      b: {
+        p: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 22.5,9 C 23.88,9 25,7.88 25,6.5 C 25,5.12 23.88,4 22.5,4 C 21.12,4 20,5.12 20,6.5 C 20,7.88 21.12,9 22.5,9 z M 24,10 L 21,10 L 21,18 L 16,21 L 16,23 L 29,23 L 29,21 L 24,18 L 24,10 z M 13,32 L 32,32 L 32,25 L 13,25 L 13,32 z M 10,36 L 35,36 L 35,33 L 10,33 L 10,36 z" fill="#222" stroke="#eadeca" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        r: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 z M 12,36 L 33,36 L 33,32 L 12,32 L 12,36 z M 11,14 L 11,9 L 15,9 L 15,11 L 20,11 L 20,9 L 25,9 L 25,11 L 30,11 L 30,9 L 34,9 L 34,14 L 31,17 L 31,29 L 14,29 L 14,17 L 11,14 z M 14,31 L 31,31 L 31,32 L 14,32 L 14,31 z" fill="#222" stroke="#eadeca" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        n: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 22,10 C 32.5,11 38.5,18 38,39 L 15,39 C 15,30 25,32.5 23,18 C 20.5,18.5 16,18 12,13 C 14,20 8,24 8,24 C 11.5,18 11.5,14 10.5,12 C 10.5,12 18,7 22,10 z" fill="#222" stroke="#eadeca" stroke-width="1.5" stroke-linejoin="round"/><path d="M 9.5 25.5 A 0.5 0.5 0 1 1 8.5,25.5 A 0.5 0.5 0 1 1 9.5 25.5 z" fill="#eadeca" stroke="#eadeca"/></svg>`,
+        b: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><g fill="none" stroke="#eadeca" stroke-width="1.5" stroke-linejoin="round"><path d="M 9,36 C 12.39,35.03 19.11,36.46 22.5,34 C 25.89,36.46 32.61,35.03 36,36 C 36,36 37.65,36.54 39,38 C 38.32,38.97 37.35,38.99 36,38.5 C 32.61,37.53 25.89,38.96 22.5,37.5 C 19.11,38.96 12.39,37.53 9,38.5 C 7.64,38.99 6.67,38.97 6,38 C 7.34,36.54 9,36 9,36 z" fill="#222"/><path d="M 15,32 C 17.5,34.5 27.5,34.5 30,32 C 30.5,30.5 30,22 30,22 C 30,22 25.5,16 22.5,10 C 19.5,16 15,22 15,22 C 15,22 14.5,30.5 15,32 z" fill="#222"/><circle cx="22.5" cy="8" r="2.5" fill="#222"/></g></svg>`,
+        q: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 9 13 A 2 2 0 1 1 5,13 A 2 2 0 1 1 9 13 z M 20 9 A 2 2 0 1 1 16,9 A 2 2 0 1 1 20 9 z M 27 9 A 2 2 0 1 1 23,9 A 2 2 0 1 1 27 9 z M 38 13 A 2 2 0 1 1 34,13 A 2 2 0 1 1 38 13 z M 32 20 A 2 2 0 1 1 28,20 A 2 2 0 1 1 32 20 z M 9,26 C 17.5,24.5 30,24.5 36,26 L 38,14 L 31,25 L 25,10 L 20,10 L 14,25 L 7,14 L 9,26 z M 9,28 L 36,28 L 36,31 L 9,31 L 9,28 z M 11,33 C 12,36 33,36 34,33 L 11,33 z" fill="#222" stroke="#eadeca" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        k: `<svg viewBox="0 0 45 45" class="w-full h-full filter drop-shadow"><path d="M 22.5,11.63 L 22.5,6 M 20,8 L 25,8 M 22.5,25 C 22.5,25 27,17.5 25.5,14.5 C 24,11.5 21,11.5 22.5,11.5 C 24,11.5 21,11.5 19.5,14.5 C 18,17.5 22.5,25 22.5,25 z" fill="none" stroke="#eadeca" stroke-width="1.5" stroke-linecap="round"/><path d="M 11.5,37 C 17,35.5 28,35.5 33.5,37 C 33.5,37 36.5,36.5 37.5,30 C 32.5,29 22.5,29 11.5,29 C 11.5,29 8.5,29.5 7.5,30 C 8.5,36.5 11.5,37 11.5,37 z" fill="#222" stroke="#eadeca" stroke-width="1.5" stroke-linejoin="round"/></svg>`
+      }
+    };
+
+    // Piece Square Value Tables for Minimax AI Position Evaluation
+    const PAWN_PST = [
+      0,  0,  0,  0,  0,  0,  0,  0,
+      50, 50, 50, 50, 50, 50, 50, 50,
+      10, 10, 20, 30, 30, 20, 10, 10,
+       5,  5, 10, 25, 25, 10,  5,  5,
+       0,  0,  0, 20, 20,  0,  0,  0,
+       5, -5,-10,  0,  0,-10, -5,  5,
+       5, 10, 10,-20,-20, 10, 10,  5,
+       0,  0,  0,  0,  0,  0,  0,  0
+    ];
+
+    const KNIGHT_PST = [
+      -50,-40,-30,-30,-30,-30,-40,-50,
+      -40,-20,  0,  0,  0,  0,-20,-40,
+      -30,  0, 10, 15, 15, 10,  0,-30,
+      -30,  5, 15, 20, 20, 15,  5,-30,
+      -30,  0, 15, 20, 20, 15,  0,-30,
+      -30,  5, 10, 15, 15, 10,  5,-30,
+      -40,-20,  0,  5,  5,  0,-20,-40,
+      -50,-40,-30,-30,-30,-30,-40,-50
+    ];
+
+    const BISHOP_PST = [
+      -20,-10,-10,-10,-10,-10,-10,-20,
+      -10,  0,  0,  0,  0,  0,  0,-10,
+      -10,  0,  5, 10, 10,  5,  0,-10,
+      -10,  5,  5, 10, 10,  5,  5,-10,
+      -10,  0, 10, 10, 10, 10,  0,-10,
+      -10, 10, 10, 10, 10, 10, 10,-10,
+      -10,  5,  0,  0,  0,  0,  5,-10,
+      -20,-10,-10,-10,-10,-10,-10,-20
+    ];
+
+    const ROOK_PST = [
+        0,  0,  0,  0,  0,  0,  0,  0,
+        5, 10, 10, 10, 10, 10, 10,  5,
+       -5,  0,  0,  0,  0,  0,  0, -5,
+       -5,  0,  0,  0,  0,  0,  0, -5,
+       -5,  0,  0,  0,  0,  0,  0, -5,
+       -5,  0,  0,  0,  0,  0,  0, -5,
+       -5,  0,  0,  0,  0,  0,  0, -5,
+        0,  0,  0,  5,  5,  0,  0,  0
+    ];
+
+    const QUEEN_PST = [
+      -20,-10,-10, -5, -5,-10,-10,-20,
+      -10,  0,  0,  0,  0,  0,  0,-10,
+      -10,  0,  5,  5,  5,  5,  0,-10,
+       -5,  0,  5,  5,  5,  5,  0, -5,
+        0,  0,  5,  5,  5,  5,  0, -5,
+      -10,  5,  5,  5,  5,  5,  0,-10,
+      -10,  0,  5,  0,  0,  0,  0,-10,
+      -20,-10,-10, -5, -5,-10,-10,-20
+    ];
+
+    const KING_PST = [
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -30,-40,-40,-50,-50,-40,-40,-30,
+      -20,-30,-30,-40,-40,-30,-30,-20,
+      -10,-20,-20,-20,-20,-20,-20,-10,
+       20, 20,  0,  0,  0,  0, 20, 20,
+       20, 30, 10,  0,  0, 10, 30, 20
+    ];
+
+    class ChessGameApp {
+      constructor() {
+        this.game = new Chess();
+        this.audio = new ChessAudio();
+        
+        // Settings State
+        this.boardFlipped = false;
+        this.selectedSquare = null;
+        this.legalMoves = [];
+        this.lastMove = null;
+        this.gameMode = 'ai-medium'; // 'pvp', 'ai-easy', 'ai-medium', 'ai-hard'
+        
+        // Timer State
+        this.timeLimit = 600; // default 10 mins
+        this.whiteTime = 600;
+        this.blackTime = 600;
+        this.timerInterval = null;
+        this.gameStarted = false;
+        this.pendingPromotionMove = null;
+        this.moveStartTime = null;
+
+        // Custom Theme Colors
+        this.themes = [
+          { light: '#eadeca', dark: '#78472a', border: '#2b1d14' }, // Classic Wood
+          { light: '#f0d9b5', dark: '#b58863', border: '#3a2718' }, // Standard Chess.com
+          { light: '#e2e8f0', dark: '#475569', border: '#0f172a' }  // Dark Slate Modern
+        ];
+        this.currentThemeIdx = 0;
+
+        // DOM Element Cache
+        this.boardEl = document.getElementById('board');
+        this.turnBadge = document.getElementById('turnBadge');
+        this.turnText = document.getElementById('turnText');
+        this.moveHistoryList = document.getElementById('moveHistoryList');
+        this.moveCountText = document.getElementById('moveCountText');
+        this.topTimerEl = document.getElementById('topTimer');
+        this.bottomTimerEl = document.getElementById('bottomTimer');
+        this.topCapturedBox = document.getElementById('topCapturedBox');
+        this.bottomCapturedBox = document.getElementById('bottomCapturedBox');
+        this.topPlayerName = document.getElementById('topPlayerName');
+        this.topPlayerSub = document.getElementById('topPlayerSub');
+        this.topPlayerIcon = document.getElementById('topPlayerIcon');
+
+        this.initDOMListeners();
+        this.initGame();
+      }
+
+      initDOMListeners() {
+        document.getElementById('btnNewGame').addEventListener('click', () => this.initGame());
+        document.getElementById('btnUndo').addEventListener('click', () => this.handleUndo());
+        document.getElementById('btnFlip').addEventListener('click', () => this.toggleFlip());
+        document.getElementById('btnResign').addEventListener('click', () => this.handleResign());
+
+        document.getElementById('modeSelect').addEventListener('change', (e) => {
+          this.gameMode = e.target.value;
+          this.updatePlayerLabels();
+          this.initGame();
+        });
+
+        document.getElementById('timerPreset').addEventListener('change', (e) => {
+          this.timeLimit = parseInt(e.target.value, 10);
+          this.resetTimers();
+        });
+
+        document.getElementById('soundToggleBtn').addEventListener('click', (e) => {
+          this.audio.enabled = !this.audio.enabled;
+          const icon = e.currentTarget.querySelector('i');
+          icon.className = this.audio.enabled ? 'fa-solid fa-volume-high text-sm' : 'fa-solid fa-volume-xmark text-sm text-red-400';
+        });
+
+        document.getElementById('themeToggleBtn').addEventListener('click', () => {
+          this.currentThemeIdx = (this.currentThemeIdx + 1) % this.themes.length;
+          this.applyTheme();
+        });
+
+        // Modals
+        document.getElementById('modalBtnRestart').addEventListener('click', () => {
+          this.hideGameOverModal();
+          this.initGame();
+        });
+        document.getElementById('modalBtnClose').addEventListener('click', () => this.hideGameOverModal());
+      }
+
+      initGame() {
+        this.game.reset();
+        this.selectedSquare = null;
+        this.legalMoves = [];
+        this.lastMove = null;
+        this.gameStarted = false;
+        this.stopTimer();
+        this.resetTimers();
+        this.updatePlayerLabels();
+        this.renderBoard();
+        this.updateUI();
+      }
+
+      resetTimers() {
+        this.whiteTime = this.timeLimit;
+        this.blackTime = this.timeLimit;
+        this.updateTimerDisplay();
+      }
+
+      startTimer() {
+        if (this.timerInterval || this.timeLimit === 0) return;
+        this.gameStarted = true;
+        this.moveStartTime = Date.now();
+        this.timerInterval = setInterval(() => {
+          if (this.game.game_over()) return;
+
+          if (this.game.turn() === 'w') {
+            this.whiteTime--;
+            if (this.whiteTime <= 0) {
+              this.whiteTime = 0;
+              this.handleTimeOut('w');
+            }
+          } else {
+            this.blackTime--;
+            if (this.blackTime <= 0) {
+              this.blackTime = 0;
+              this.handleTimeOut('b');
+            }
+          }
+          this.updateTimerDisplay();
+        }, 1000);
+      }
+
+      stopTimer() {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+      }
+
+      updateTimerDisplay() {
+        const formatTime = (secs) => {
+          if (secs === 0 && this.timeLimit === 0) return "∞";
+          const m = Math.floor(secs / 60).toString().padStart(2, '0');
+          const s = (secs % 60).toString().padStart(2, '0');
+          return `${m}:${s}`;
+        };
+
+        this.bottomTimerEl.textContent = formatTime(this.whiteTime);
+        this.topTimerEl.textContent = formatTime(this.blackTime);
+
+        // Highlight active timer box
+        const wBox = document.getElementById('bottomTimerBox');
+        const bBox = document.getElementById('topTimerBox');
+
+        if (this.game.turn() === 'w' && this.gameStarted) {
+          wBox.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40');
+          bBox.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40');
+        } else if (this.game.turn() === 'b' && this.gameStarted) {
+          bBox.classList.add('border-amber-400', 'ring-2', 'ring-amber-400/40');
+          wBox.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40');
+        } else {
+          wBox.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40');
+          bBox.classList.remove('border-amber-400', 'ring-2', 'ring-amber-400/40');
+        }
+      }
+
+      updatePlayerLabels() {
+        if (this.gameMode === 'pvp') {
+          this.topPlayerName.textContent = "Người chơi 2";
+          this.topPlayerSub.textContent = "Quân Đen";
+          this.topPlayerIcon.className = "fa-solid fa-user-ninja";
+        } else {
+          let diffName = "Máy (Dễ)";
+          if (this.gameMode === 'ai-medium') diffName = "Máy (Vừa)";
+          if (this.gameMode === 'ai-hard') diffName = "Máy (Khó)";
+          this.topPlayerName.textContent = diffName;
+          this.topPlayerSub.textContent = "Quân Đen AI";
+          this.topPlayerIcon.className = "fa-solid fa-robot";
+        }
+      }
+
+      toggleFlip() {
+        this.boardFlipped = !this.boardFlipped;
+        this.renderBoard();
+      }
+
+      applyTheme() {
+        const theme = this.themes[this.currentThemeIdx];
+        document.querySelectorAll('.square-light').forEach(el => el.style.backgroundColor = theme.light);
+        document.querySelectorAll('.square-dark').forEach(el => el.style.backgroundColor = theme.dark);
+        this.boardEl.style.borderColor = theme.border;
+      }
+
+      renderBoard() {
+        this.boardEl.innerHTML = '';
+        const theme = this.themes[this.currentThemeIdx];
+        this.boardEl.style.borderColor = theme.border;
+
+        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+        const displayFiles = this.boardFlipped ? [...files].reverse() : files;
+        const displayRanks = this.boardFlipped ? [...ranks].reverse() : ranks;
+
+        const inCheckSquare = this.game.in_check() ? this.getKingSquare(this.game.turn()) : null;
+
+        displayRanks.forEach((rank, rIdx) => {
+          displayFiles.forEach((file, fIdx) => {
+            const sqName = `${file}${rank}`;
+            const isLight = (rIdx + fIdx) % 2 === 0;
+
+            const sqDiv = document.createElement('div');
+            sqDiv.className = `relative flex items-center justify-center select-none transition-colors ${
+              isLight ? 'square-light' : 'square-dark'
+            }`;
+            sqDiv.dataset.square = sqName;
+            sqDiv.style.backgroundColor = isLight ? theme.light : theme.dark;
+
+            // Highlight Last Move
+            if (this.lastMove && (this.lastMove.from === sqName || this.lastMove.to === sqName)) {
+              sqDiv.classList.add('square-last-move');
+            }
+
+            // Highlight Selected Square
+            if (this.selectedSquare === sqName) {
+              sqDiv.classList.add('square-selected');
+            }
+
+            // Highlight King in Check
+            if (inCheckSquare === sqName) {
+              sqDiv.classList.add('square-in-check');
+            }
+
+            // Coordinates Labels
+            if (fIdx === 7) {
+              const rLabel = document.createElement('span');
+              rLabel.className = 'coord-label coord-rank';
+              rLabel.textContent = rank;
+              sqDiv.appendChild(rLabel);
+            }
+            if (rIdx === 7) {
+              const fLabel = document.createElement('span');
+              fLabel.className = 'coord-label coord-file';
+              fLabel.textContent = file;
+              sqDiv.appendChild(fLabel);
+            }
+
+            // Piece Element
+            const piece = this.game.get(sqName);
+            if (piece) {
+              const pieceDiv = document.createElement('div');
+              pieceDiv.className = 'chess-piece';
+              pieceDiv.innerHTML = PIECE_SVGS[piece.color][piece.type];
+              pieceDiv.draggable = true;
+
+              pieceDiv.addEventListener('dragstart', (e) => this.handleDragStart(e, sqName));
+              sqDiv.appendChild(pieceDiv);
+            }
+
+            // Valid Move Indicators
+            const isLegal = this.legalMoves.find(m => m.to === sqName);
+            if (isLegal) {
+              const hintDiv = document.createElement('div');
+              if (this.game.get(sqName)) {
+                hintDiv.className = 'capture-hint-ring absolute';
+              } else {
+                hintDiv.className = 'move-hint-dot absolute';
+              }
+              sqDiv.appendChild(hintDiv);
+            }
+
+            // Click & Drag-over Handlers
+            sqDiv.addEventListener('click', () => this.handleSquareClick(sqName));
+            sqDiv.addEventListener('dragover', (e) => e.preventDefault());
+            sqDiv.addEventListener('drop', (e) => this.handleDrop(e, sqName));
+
+            this.boardEl.appendChild(sqDiv);
+          });
+        });
+      }
+
+      getKingSquare(color) {
+        const board = this.game.board();
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const p = board[r][c];
+            if (p && p.type === 'k' && p.color === color) {
+              const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+              return `${files[c]}${8 - r}`;
+            }
+          }
+        }
+        return null;
+      }
+
+      handleSquareClick(sqName) {
+        if (this.game.game_over()) return;
+
+        // Prevent human moving AI pieces during AI turn
+        if (this.isAITurn()) return;
+
+        const piece = this.game.get(sqName);
+
+        // If a piece is already selected
+        if (this.selectedSquare) {
+          if (this.selectedSquare === sqName) {
+            // Deselect
+            this.selectedSquare = null;
+            this.legalMoves = [];
+            this.renderBoard();
+            return;
+          }
+
+          // Check if clicking another friendly piece
+          if (piece && piece.color === this.game.turn()) {
+            this.selectedSquare = sqName;
+            this.legalMoves = this.game.moves({ square: sqName, verbose: true });
+            this.renderBoard();
+            return;
+          }
+
+          // Attempt Move execution
+          const moveCandidate = this.legalMoves.find(m => m.to === sqName);
+          if (moveCandidate) {
+            this.executeMove(moveCandidate);
+            return;
+          }
+        }
+
+        // Select new piece if it belongs to current player turn
+        if (piece && piece.color === this.game.turn()) {
+          this.selectedSquare = sqName;
+          this.legalMoves = this.game.moves({ square: sqName, verbose: true });
+          this.renderBoard();
+        }
+      }
+
+      handleDragStart(e, sqName) {
+        if (this.game.game_over() || this.isAITurn()) {
+          e.preventDefault();
+          return;
+        }
+        const piece = this.game.get(sqName);
+        if (!piece || piece.color !== this.game.turn()) {
+          e.preventDefault();
+          return;
+        }
+
+        this.selectedSquare = sqName;
+        this.legalMoves = this.game.moves({ square: sqName, verbose: true });
+        this.renderBoard();
+        e.dataTransfer.setData('text/plain', sqName);
+      }
+
+      handleDrop(e, targetSq) {
+        e.preventDefault();
+        if (this.selectedSquare && this.selectedSquare !== targetSq) {
+          const moveCandidate = this.legalMoves.find(m => m.to === targetSq);
+          if (moveCandidate) {
+            this.executeMove(moveCandidate);
+          }
+        }
+      }
+
+      isAITurn() {
+        return this.gameMode.startsWith('ai') && this.game.turn() === 'b';
+      }
+
+      executeMove(moveCandidate) {
+        // Check Pawn Promotion
+        if (moveCandidate.flags.includes('p') || moveCandidate.promotion) {
+          this.showPromotionModal(moveCandidate);
+          return;
+        }
+
+        this.applyMove(moveCandidate);
+      }
+
+      showPromotionModal(moveCandidate) {
+        this.pendingPromotionMove = moveCandidate;
+        const modal = document.getElementById('promotionModal');
+        const container = document.getElementById('promotionOptions');
+        container.innerHTML = '';
+
+        const color = this.game.turn();
+        const promoPieces = ['q', 'r', 'b', 'n'];
+
+        promoPieces.forEach(pType => {
+          const btn = document.createElement('button');
+          btn.className = 'p-3 rounded-xl bg-slate-800 hover:bg-amber-600/40 border border-slate-700 hover:border-amber-400 transition-all flex items-center justify-center';
+          btn.innerHTML = PIECE_SVGS[color][pType];
+          btn.onclick = () => {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const finalMove = { ...this.pendingPromotionMove, promotion: pType };
+            this.applyMove(finalMove);
+          };
+          container.appendChild(btn);
+        });
+
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+      }
+
+      applyMove(moveObj) {
+        if (!this.gameStarted) {
+          this.startTimer();
+        }
+
+        const res = this.game.move(moveObj);
+        if (!res) return;
+
+        this.lastMove = res;
+        this.selectedSquare = null;
+        this.legalMoves = [];
+
+        // Audio Effects
+        if (this.game.in_check() || this.game.in_checkmate()) {
+          this.audio.playCheck();
+        } else if (res.captured) {
+          this.audio.playCapture();
+        } else {
+          this.audio.playMove();
+        }
+
+        this.renderBoard();
+        this.updateUI();
+
+        // Trigger AI Turn if in AI mode and game is active
+        if (!this.game.game_over() && this.isAITurn()) {
+          setTimeout(() => this.makeAIMove(), 300);
+        }
+      }
+
+      makeAIMove() {
+        if (this.game.game_over()) return;
+
+        let bestMove = null;
+
+        if (this.gameMode === 'ai-easy') {
+          bestMove = this.getRandomMove();
+        } else if (this.gameMode === 'ai-medium') {
+          bestMove = this.getBestMoveMinimax(2);
+        } else if (this.gameMode === 'ai-hard') {
+          bestMove = this.getBestMoveMinimax(3);
+        }
+
+        if (bestMove) {
+          this.applyMove(bestMove);
+        }
+      }
+
+      getRandomMove() {
+        const moves = this.game.moves({ verbose: true });
+        if (moves.length === 0) return null;
+        // Simple heuristic: 40% chance to capture if available
+        const captures = moves.filter(m => m.captured);
+        if (captures.length > 0 && Math.random() < 0.4) {
+          return captures[Math.floor(Math.random() * captures.length)];
+        }
+        return moves[Math.floor(Math.random() * moves.length)];
+      }
+
+      getBestMoveMinimax(depth) {
+        const possibleMoves = this.game.moves({ verbose: true });
+        if (possibleMoves.length === 0) return null;
+
+        let bestMove = null;
+        let bestValue = -Infinity;
+
+        // Shuffle moves slightly to avoid deterministic repetitive plays
+        possibleMoves.sort(() => Math.random() - 0.5);
+
+        for (let i = 0; i < possibleMoves.length; i++) {
+          const move = possibleMoves[i];
+          this.game.move(move);
+          const boardValue = -this.minimax(depth - 1, -Infinity, Infinity, false);
+          this.game.undo();
+
+          if (boardValue > bestValue) {
+            bestValue = boardValue;
+            bestMove = move;
+          }
+        }
+
+        return bestMove || possibleMoves[0];
+      }
+
+      minimax(depth, alpha, beta, isMaximizing) {
+        if (depth === 0 || this.game.game_over()) {
+          return this.evaluateBoard();
+        }
+
+        const moves = this.game.moves({ verbose: true });
+
+        if (isMaximizing) {
+          let maxEval = -Infinity;
+          for (let i = 0; i < moves.length; i++) {
+            this.game.move(moves[i]);
+            const evalVal = this.minimax(depth - 1, alpha, beta, false);
+            this.game.undo();
+            maxEval = Math.max(maxEval, evalVal);
+            alpha = Math.max(alpha, evalVal);
+            if (beta <= alpha) break; // Alpha-Beta Cutoff
+          }
+          return maxEval;
+        } else {
+          let minEval = Infinity;
+          for (let i = 0; i < moves.length; i++) {
+            this.game.move(moves[i]);
+            const evalVal = this.minimax(depth - 1, alpha, beta, true);
+            this.game.undo();
+            minEval = Math.min(minEval, evalVal);
+            beta = Math.min(beta, evalVal);
+            if (beta <= alpha) break; // Alpha-Beta Cutoff
+          }
+          return minEval;
+        }
+      }
+
+      evaluateBoard() {
+        let totalEvaluation = 0;
+        const board = this.game.board();
+
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = board[r][c];
+            if (piece) {
+              const val = this.getPieceValue(piece, r, c);
+              totalEvaluation += piece.color === 'b' ? val : -val;
+            }
+          }
+        }
+
+        return totalEvaluation;
+      }
+
+      getPieceValue(piece, x, y) {
+        if (!piece) return 0;
+
+        // Base Values
+        const values = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+        let baseVal = values[piece.type] || 0;
+
+        // Positional Tables
+        const idx = piece.color === 'b' ? x * 8 + y : (7 - x) * 8 + y;
+        let pstVal = 0;
+
+        if (piece.type === 'p') pstVal = PAWN_PST[idx];
+        else if (piece.type === 'n') pstVal = KNIGHT_PST[idx];
+        else if (piece.type === 'b') pstVal = BISHOP_PST[idx];
+        else if (piece.type === 'r') pstVal = ROOK_PST[idx];
+        else if (piece.type === 'q') pstVal = QUEEN_PST[idx];
+        else if (piece.type === 'k') pstVal = KING_PST[idx];
+
+        return baseVal + pstVal;
+      }
+
+      updateUI() {
+        // Update Turn Indicator
+        const isWhite = this.game.turn() === 'w';
+        this.turnText.textContent = isWhite ? 'Lượt Quân Trắng' : 'Lượt Quân Đen';
+        const circleSpan = this.turnBadge.querySelector('span');
+        circleSpan.className = `w-2.5 h-2.5 rounded-full ${isWhite ? 'bg-white' : 'bg-slate-900 border border-slate-400'} inline-block`;
+
+        // Update Captured Pieces
+        this.updateCapturedPieces();
+
+        // Update Move History
+        this.updateMoveHistory();
+
+        // Update Timers active styling
+        this.updateTimerDisplay();
+
+        // Check End of Game Condition
+        if (this.game.game_over()) {
+          this.stopTimer();
+          setTimeout(() => this.handleGameOver(), 500);
+        }
+      }
+
+      updateCapturedPieces() {
+        const history = this.game.history({ verbose: true });
+        const capturedByWhite = [];
+        const capturedByBlack = [];
+
+        history.forEach(m => {
+          if (m.captured) {
+            if (m.color === 'w') capturedByWhite.push(m.captured);
+            else capturedByBlack.push(m.captured);
+          }
+        });
+
+        // Render Captured Icons
+        this.bottomCapturedBox.innerHTML = capturedByWhite.map(p => 
+          `<span class="w-5 h-5 inline-block opacity-90">${PIECE_SVGS['b'][p]}</span>`
+        ).join('');
+
+        this.topCapturedBox.innerHTML = capturedByBlack.map(p => 
+          `<span class="w-5 h-5 inline-block opacity-90">${PIECE_SVGS['w'][p]}</span>`
+        ).join('');
+      }
+
+      updateMoveHistory() {
+        const history = this.game.history({ verbose: true });
+        this.moveCountText.textContent = `${history.length} nước`;
+
+        if (history.length === 0) {
+          this.moveHistoryList.innerHTML = `<p class="text-slate-500 italic text-center py-6 text-xs">Chưa có nước đi nào</p>`;
+          return;
+        }
+
+        let html = '';
+        for (let i = 0; i < history.length; i += 2) {
+          const turnNum = Math.floor(i / 2) + 1;
+          const wMove = history[i] ? history[i].san : '';
+          const bMove = history[i + 1] ? history[i + 1].san : '';
+
+          html += `
+            <div class="flex items-center justify-between py-1 px-2 rounded-lg ${turnNum % 2 === 0 ? 'bg-slate-800/40' : 'bg-transparent'} hover:bg-slate-700/50">
+              <span class="text-slate-500 font-bold w-8">${turnNum}.</span>
+              <span class="text-amber-200 font-semibold w-20 text-left">${wMove}</span>
+              <span class="text-slate-300 font-semibold w-20 text-left">${bMove}</span>
+            </div>
+          `;
+        }
+
+        this.moveHistoryList.innerHTML = html;
+        this.moveHistoryList.scrollTop = this.moveHistoryList.scrollHeight;
+      }
+
+      handleUndo() {
+        if (this.game.history().length === 0) return;
+
+        // In AI mode, undo 2 steps (player + AI)
+        if (this.gameMode.startsWith('ai') && this.game.turn() === 'w') {
+          this.game.undo();
+          this.game.undo();
+        } else {
+          this.game.undo();
+        }
+
+        this.lastMove = null;
+        this.selectedSquare = null;
+        this.legalMoves = [];
+        this.renderBoard();
+        this.updateUI();
+      }
+
+      handleResign() {
+        if (this.game.game_over()) return;
+        const loser = this.game.turn() === 'w' ? 'Quân Trắng' : 'Quân Đen';
+        const winner = this.game.turn() === 'w' ? 'Quân Đen' : 'Quân Trắng';
+        this.showGameOverModal(`${winner} Thắng!`, `${loser} đã xin đầu hàng.`);
+      }
+
+      handleTimeOut(loserColor) {
+        const winner = loserColor === 'w' ? 'Quân Đen' : 'Quân Trắng';
+        this.showGameOverModal(`${winner} Thắng!`, `Hết giờ! ${loserColor === 'w' ? 'Quân Trắng' : 'Quân Đen'} đã cạn thời gian.`);
+      }
+
+      handleGameOver() {
+        this.audio.playGameEnd();
+
+        if (this.game.in_checkmate()) {
+          const winner = this.game.turn() === 'w' ? 'Quân Đen' : 'Quân Trắng';
+          this.showGameOverModal(`CHIẾN THẮNG!`, `${winner} đã chiếu bí đối thủ!`);
+        } else if (this.game.in_draw()) {
+          let reason = "Hòa cờ.";
+          if (this.game.in_stalemate()) reason = "Hòa do Bế tắc (Stalemate).";
+          else if (this.game.in_threefold_repetition()) reason = "Hòa do Lặp lại nước đi 3 lần.";
+          else if (this.game.insufficient_material()) reason = "Hòa do Không đủ lực lượng chiếu bí.";
+          this.showGameOverModal("HÒA CỜ!", reason);
+        }
+      }
+
+      showGameOverModal(title, reason) {
+        const modal = document.getElementById('gameOverModal');
+        const content = document.getElementById('gameOverContent');
+        
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalReason').textContent = reason;
+        document.getElementById('modalTotalMoves').textContent = this.game.history().length;
+        
+        // Calculate playtime
+        const now = Date.now();
+        const elapsed = this.moveStartTime ? Math.floor((now - this.moveStartTime) / 1000) : 0;
+        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('modalPlayTime').textContent = `${m}:${s}`;
+
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+      }
+
+      hideGameOverModal() {
+        const modal = document.getElementById('gameOverModal');
+        const content = document.getElementById('gameOverContent');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+      }
+    }
+
+    // Initialize application on window load
+    window.addEventListener('load', () => {
+      window.chessApp = new ChessGameApp();
+    });
+  </script>
+</body>
+</html>
